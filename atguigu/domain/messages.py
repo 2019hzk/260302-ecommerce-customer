@@ -1,4 +1,6 @@
 """
+
+领域数据模型：服务内部使用
 封装两种角色的消息
 User:用户的角色
 Bot:机器人角色
@@ -99,4 +101,7 @@ class BotMessage:
         )
 
 
-
+@dataclass(slots=True)
+class ProcessResult:
+    message_id: str
+    messages: list[BotMessage]

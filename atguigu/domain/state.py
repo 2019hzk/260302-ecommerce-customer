@@ -1,3 +1,5 @@
+import time
+import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -161,19 +163,19 @@ class DialogueState:
 
         # 2.内置恢复
         if flow_id is None:
-            paused_task = self.paused_tasks.pop()   # pop
-            self.activated_task= paused_task
+            paused_task = self.paused_tasks.pop()  # pop
+            self.activated_task = paused_task
             return True
 
         # 3. 精确恢复
         for index, paused_task in enumerate(self.paused_tasks):
-            if paused_task.flow_id==flow_id:
-                self.activated_task=self.paused_tasks[index]  # 根据索引取值
+            if paused_task.flow_id == flow_id:
+                self.activated_task = paused_task
                 del self.paused_tasks[index]
                 return True
-        return  False
+        return False
 
-    def  start_system_task(self,system_context:SystemContext):
+    def start_system_task(self, system_context: SystemContext):
         """
         职责：开启一个新的"系统流程任务"
         :param system_context:
@@ -187,10 +189,9 @@ class DialogueState:
         :return:
         """
 
-        self.activated_system_task=None
+        self.activated_system_task = None
 
-
-    def  current_task(self):
+    def current_task(self):
         """
         职责：返回当前应用中系统流程任务上下文或者业务流程任务上下文
         如果当前应用中既有 系统流程任务上下文又有业务流程上下文，优选返回系统流程任务上下文。过场表要先说
@@ -199,13 +200,64 @@ class DialogueState:
         """
         return self.activated_system_task or self.activated_task
 
-
-
     # ===================================（槽位）相关==================================
 
+    def set_slots(self, slots: dict[str, Any]):
+
+        if self.activated_task is not None:
+            self.activated_task.slots.update(slots)
+
+    def remove_slot(self, slot_name: str):
+        if self.activated_task is not None:
+            self.activated_task.slots.pop(slot_name)
+
+
     # ===================================（会话session）相关==================================
+    def start_session(self):
+        now = time.time()
+        # 实例化session
+        session = Session(session_id=str(uuid.uuid4()),
+                          started_at=now,
+                          last_activated_at=now)
+
+        self.sessions.append(session)
+        self.current_session_id = session.session_id
+
+    def current_session(self) -> Session | None:
+        for session in self.sessions:
+            if session.session_id == self.current_session_id:
+                return session
+        return None
+
+    def close_current_session(self):
+        self.current_session().closed_at = time.time()
+        self.current_session_id = None
+
+    def reset_runtime_state_for_new_session(self):
+        self.activated_task = None
+        self.activated_system_task = None
+        self.paused_tasks = []
+        self.focused_object = None
+        self.pending_turn=None
 
     # ===================================（pending_turn）相关==================================
+    def begin_turn(self, message: UserMessage):
+        self.pending_turn = Turn(
+            turn_id=str(uuid.uuid4()),
+            user_message=message,
+            bot_messages=[]     # 引擎后续处理完之后 将得到的bot_message追加到bot_messages中
+        )
+
+    def commit_pending_turn(self):
+        self.current_session().turns.append(self.pending_turn)
+        self.pending_turn = None    # 及时清空缓冲区 为了接收下一个轮次(turn)
+
+    # ===================================（卡片）相关==================================
+    def set_focused_object(self, object: FocusedObject):
+        self.focused_object = object
+
+
+
 
 
 
