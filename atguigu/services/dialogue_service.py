@@ -26,7 +26,7 @@ class DialogueService:
         dialogue_state = await self._repository.load_state(user_message.sender_id)
 
         # 2. 调用引擎做各种逻辑处理(调用LLM 进行路由分析、推进流程...)
-        process_result = await self._engine.process_message(dialogue_state)
+        process_result = await self._engine.process_message(user_message,dialogue_state)
 
         # 3. 将引擎层修改后的最新状态存储到数据库中
         await self._repository.save_state(user_message.sender_id,dialogue_state)

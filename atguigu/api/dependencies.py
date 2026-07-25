@@ -10,10 +10,11 @@ from atguigu.engine.dialogue_engine import DialogueEngine
 from atguigu.repository.dialogue_repository import DialogueRepository
 # from atguigu.infrastructure.database import session_factory   # "直接"导入成员 ，如果该成员后面会重新生成新的对象，那么别的模块无法获取重新生成的。
 from atguigu.infrastructure import database
+from atguigu.engine.builder import build_dialogue_engine
 
 
 def get_dialogue_engine():
-    return DialogueEngine()
+    return build_dialogue_engine()
 
 
 DialogueEngineDep = Annotated[DialogueEngine, Depends(get_dialogue_engine)]
@@ -36,5 +37,6 @@ DialogueRepositoryDep = Annotated[DialogueRepository, Depends(get_dialogue_repos
 
 def get_dialogue_service(engine: DialogueEngineDep, repository: DialogueRepositoryDep):
     return DialogueService(engine, repository)
+
 
 DialogueServiceDep = Annotated[DialogueService, Depends(get_dialogue_service)]
