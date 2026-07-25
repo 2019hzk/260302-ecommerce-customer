@@ -30,6 +30,7 @@ class FocusedObject:
         数据库写(次操作字符串更加方便)
         :return:
         """
+
         return {
             "id": self.id,
             "type": self.type,

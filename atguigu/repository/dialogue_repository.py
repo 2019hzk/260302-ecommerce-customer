@@ -60,7 +60,7 @@ class DialogueRepository:
         dialogue_state_dict = DialogueState.to_dict(dialogue_state)
 
         # 2. 序列化
-        dialogue_state_json = json.dumps(dialogue_state_dict)
+        dialogue_state_json = json.dumps(dialogue_state_dict,ensure_ascii=False)
 
         # 3. 构建SQL语句（自带插入和修改的判断。业务层不用再判断，SQL层自己判断） 注意：insert语句一定是sqlalchemy包下的方言包中具体数据库中的
         insert_stmt = insert(DialogueRecord).values(sender_id=sender_id, state_json=dialogue_state_json)

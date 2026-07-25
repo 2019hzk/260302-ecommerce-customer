@@ -5,6 +5,7 @@ from atguigu.domain.state import DialogueState
 from atguigu.plan.planner import TurnPlanner
 from atguigu.plan.validator import TurnPlanValidator
 from atguigu.clarify.responder import ClarifyResponder
+from atguigu.task.flows.flows import FlowsList
 from atguigu.task.handler import TaskHandler
 from atguigu.knowledge.handler import KnowledgeHandler
 from atguigu.chitchat.handler import ChitChatHandler
@@ -23,9 +24,9 @@ class DialogueEngine:
         self._planner = turn_planner
         self._validator = turn_plan_validator
         self._responder = clarify_responder
-        self.task_handler = task_handler
-        self.knowledge_handler = knowledge_handler
-        self.chitchat_handler = chitchat_handler
+        self._task_handler = task_handler
+        self._knowledge_handler = knowledge_handler
+        self._chitchat_handler = chitchat_handler
 
     async def process_message(self,
                               user_message: UserMessage,
@@ -44,7 +45,8 @@ class DialogueEngine:
         # 3. 处理消息类型(消息分流)
         # 3.1 文本消息类型
         if user_message.type is MessageType.TEXT:
-            bot_messages: list[BotMessage] = await self._process_text_message(state)
+            bot_messages: list[BotMessage] = await self._process_text_message(state,
+                                                                              flows_list=self._task_handler.flows_list)
 
         # 3.2 对象消息类型
         else:
@@ -100,22 +102,25 @@ class DialogueEngine:
                     state: DialogueState):
         state.begin_turn(user_message)
 
-    async def _process_text_message(self, state: DialogueState) -> list[BotMessage]:
+    async def _process_text_message(self,
+                                    state: DialogueState,
+                                    *,
+                                    flows_list: FlowsList) -> list[BotMessage]:
 
         # 1. 利用轮次规划器进行路由判断
-        turn_plan = await self._planner.predict(state)
+        turn_plan = await self._planner.predict(state, flows_list)
 
         # 2. 利用轮次校验器校验轮次的结果(TODO)
-        validated = self._validator.validate(turn_plan)
+        # validated = self._validator.validate(turn_plan)
 
         # 3. 如果校验不通过，需要意图澄清器，澄清(TODO)
-        if  not validated:
-            return  self._responder.respond(validated,state),
+        # if not validated:
+        #     return self._responder.respond(validated, state)
 
         # 4. 如果校验通过，找到对应的三条轨道的处理器处理(TODO)
         # 5. 将三条轨道处理后的结果 返回
 
-        pass
+        return [BotMessage(text="你好，欢迎来到sgg")]
 
     async def _process_object_message(self,
                                       state: DialogueState) -> list[BotMessage]:

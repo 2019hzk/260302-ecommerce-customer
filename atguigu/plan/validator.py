@@ -1,2 +1,6 @@
+from atguigu.plan.turn_plan import TurnPlan
+
+
 class TurnPlanValidator:
-    pass
+    def validate(self, turn_plan:TurnPlan):
+        pass

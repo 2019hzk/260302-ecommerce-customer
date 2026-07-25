@@ -1,5 +1,6 @@
-
+from atguigu.domain.state import DialogueState
 
 
 class ClarifyResponder:
-    pass
+    def respond(self, validated, state:DialogueState):
+        pass
