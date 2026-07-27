@@ -114,12 +114,12 @@ class DialogueEngine:
         # 1. 利用轮次规划器进行路由判断
         turn_plan = await self._planner.predict(state, flows_list,knowledge_intents)
 
-        # 2. 利用轮次校验器校验轮次的结果(TODO)
+        # 2. 利用轮次校验器校验轮次的结果
         validated = self._validator.validate(turn_plan,state,flows_list,knowledge_intents)
 
-        # 3. 如果校验不通过，需要意图澄清器，澄清(TODO)
-        # if not validated:
-        #     return self._responder.respond(validated, state)
+        # 3. 如果校验不通过，需要意图澄清器，澄清
+        if not validated.valid:
+            return await self._responder.respond(validated, state)
 
         # 4. 如果校验通过，找到对应的三条轨道的处理器处理(TODO)
         # 5. 将三条轨道处理后的结果 返回

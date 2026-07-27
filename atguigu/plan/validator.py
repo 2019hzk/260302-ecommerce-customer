@@ -1,6 +1,6 @@
 from atguigu.domain.state import DialogueState
 from atguigu.knowledge.intents import KnowledgeIntent
-from atguigu.plan.turn_plan import TurnPlan, TurnPlanValidatedResult, ClarifyReason, TaskTurnPlan
+from atguigu.plan.turn_plan import TurnPlan, TurnPlanValidatedResult, ClarifyReason, TaskTurnPlan, KnowledgeTurnPlan
 from atguigu.task.flows.flows import FlowsList
 from atguigu.task.command.commands import StartFlowCommand, ResumeFlowCommand, CancelFlowCommand, SetSlotsCommand
 
@@ -40,7 +40,7 @@ class TurnPlanValidator:
         if selected_track == "task":
             return self._validate_task_track(turn_plan.task, flows_list)
         elif selected_track == "knowledge":
-            return self._validate_knowledge_track()
+            return self._validate_knowledge_track(turn_plan.knowledge, state, knowledge_intents)
         else:
             return TurnPlanValidatedResult(valid=True)
 
@@ -89,3 +89,31 @@ class TurnPlanValidator:
                 return self._reject(reason=ClarifyReason.UNKNOWN_TASK_FLOW)
 
         return TurnPlanValidatedResult(valid=True)
+
+    def _validate_knowledge_track(self,
+                                  knowledge: KnowledgeTurnPlan,
+                                  state: DialogueState,
+                                  knowledge_intents: dict[str, KnowledgeIntent]) -> TurnPlanValidatedResult:
+        """
+        职责：校验知识轨道内部的两个知识意图（要求传入对象）是否有对象
+        如果没有则拒绝
+        如果有且二者之间类型匹配，不拒绝
+
+        Args:
+            knowledge:
+            state:
+            knowledge_intents:
+
+        Returns:
+
+        """
+        focused_object = state.focused_object
+        for intent_id in knowledge.intents:
+            knowledge_meta = knowledge_intents[intent_id]
+            requires_object = knowledge_meta.requires_object
+
+            if requires_object is not None:
+                if focused_object is None or focused_object.type!= requires_object:
+                    return self._reject(reason=ClarifyReason.MISSING_FOCUSED_OBJECT)
+
+        return  TurnPlanValidatedResult(valid=True)

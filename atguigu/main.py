@@ -1,6 +1,6 @@
 import  uvicorn
 
-from atguigu.config.config import  settings
+from atguigu.domain.config import  settings
 
 if __name__ == '__main__':
 
