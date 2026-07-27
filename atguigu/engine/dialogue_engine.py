@@ -2,6 +2,7 @@ import time
 
 from atguigu.domain.messages import ProcessResult, BotMessage, UserMessage, MessageType
 from atguigu.domain.state import DialogueState
+from atguigu.knowledge.intents import KnowledgeIntent
 from atguigu.plan.planner import TurnPlanner
 from atguigu.plan.validator import TurnPlanValidator
 from atguigu.clarify.responder import ClarifyResponder
@@ -46,7 +47,9 @@ class DialogueEngine:
         # 3.1 文本消息类型
         if user_message.type is MessageType.TEXT:
             bot_messages: list[BotMessage] = await self._process_text_message(state,
-                                                                              flows_list=self._task_handler.flows_list)
+                                                                              flows_list=self._task_handler.flows_list,
+                                                                              knowledge_intents=self._knowledge_handler.intents
+                                                                              )
 
         # 3.2 对象消息类型
         else:
@@ -105,13 +108,14 @@ class DialogueEngine:
     async def _process_text_message(self,
                                     state: DialogueState,
                                     *,
-                                    flows_list: FlowsList) -> list[BotMessage]:
+                                    flows_list: FlowsList,
+                                    knowledge_intents: dict[str, KnowledgeIntent]) -> list[BotMessage]:
 
         # 1. 利用轮次规划器进行路由判断
-        turn_plan = await self._planner.predict(state, flows_list)
+        turn_plan = await self._planner.predict(state, flows_list,knowledge_intents)
 
         # 2. 利用轮次校验器校验轮次的结果(TODO)
-        # validated = self._validator.validate(turn_plan)
+        validated = self._validator.validate(turn_plan,state,flows_list,knowledge_intents)
 
         # 3. 如果校验不通过，需要意图澄清器，澄清(TODO)
         # if not validated:

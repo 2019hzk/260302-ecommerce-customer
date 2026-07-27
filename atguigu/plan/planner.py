@@ -5,6 +5,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
 from atguigu.domain.state import DialogueState
+from atguigu.knowledge.intents import KnowledgeIntent
 from atguigu.prompt.loader import load_prompt_template
 from atguigu.infrastructure.llm import llm_client
 from atguigu.history.builder import ChatHistoryBuilder
@@ -15,7 +16,9 @@ from atguigu.plan.turn_plan import TurnPlan
 class TurnPlanner:
     async def predict(self,
                       state: DialogueState,
-                      flows_list: FlowsList)->TurnPlan:
+                      flows_list: FlowsList,
+                      knowledge_intents: dict[str, KnowledgeIntent]
+                      ) -> TurnPlan:
         """
         职责：调用LLM做路由分析，判断当前任务该用哪一条轨道处理
         Args:
@@ -35,7 +38,9 @@ class TurnPlanner:
 
     def _build_prompt_inputs(self,
                              state: DialogueState,
-                             flows_list: FlowsList) -> dict[str, Any]:
+                             flows_list: FlowsList,
+                             knowledge_intents: dict[str, KnowledgeIntent]
+                             ) -> dict[str, Any]:
         # 1. 会话相关
         user_message_str = ChatHistoryBuilder.build_user_message(state.pending_turn.user_message)
         current_conversation_str = ChatHistoryBuilder.build(state.current_session().turns[-10:])
@@ -58,7 +63,9 @@ class TurnPlanner:
                 } for flow_obj in flows_list.flows if not flow_obj.flow_id.startswith("system_")
             ]
         }, ensure_ascii=False)
-        knowledge_intents_json_str = ""
+        knowledge_intents_json_str = json.dumps([
+            {"id": intent.id, "description": intent.description} for intent in knowledge_intents.values()
+        ], ensure_ascii=False)
 
         return {
             "user_message": user_message_str,
@@ -70,7 +77,7 @@ class TurnPlanner:
             "knowledge_intents_json": knowledge_intents_json_str,
         }
 
-    async def _invoke(self, prompt_inputs: dict[str, Any])->TurnPlan:
+    async def _invoke(self, prompt_inputs: dict[str, Any]) -> TurnPlan:
         # 1. 获取提示词模版中的内容
         prompt_template_str = load_prompt_template("turn_plan")
 

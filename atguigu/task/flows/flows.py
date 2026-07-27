@@ -37,3 +37,12 @@ class FlowsList:
 
     flows: list[Flow]
     slots: dict[str, FlowSlot] = field(default_factory=dict)
+
+
+    def  get_flow_by_flow_id(self,flow_id:str)->Flow | None:
+        for flow in self.flows:
+            if flow.flow_id== flow_id:
+                return  flow
+
+        return  None
+

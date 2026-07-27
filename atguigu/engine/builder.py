@@ -8,6 +8,7 @@ from atguigu.task.handler import TaskHandler
 from atguigu.knowledge.handler import KnowledgeHandler
 from atguigu.chitchat.handler import ChitChatHandler
 from atguigu.task.flows.loader import FlowLoader
+from atguigu.knowledge.intents import KNOWLEDGE_INTENTS
 
 PROJECT_ROOT_DIR = Path(__file__).resolve().parents[2]
 
@@ -26,6 +27,6 @@ def build_dialogue_engine():
         task_handler=TaskHandler(
             flows_list=flows_list
         ),
-        knowledge_handler=KnowledgeHandler(),
+        knowledge_handler=KnowledgeHandler(intents=KNOWLEDGE_INTENTS),
         chitchat_handler=ChitChatHandler()
     )
