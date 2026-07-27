@@ -14,7 +14,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 class ClarifyResponder:
     async def respond(self,
-                      validated: TurnPlanValidatedResult,
+                      reason: ClarifyReason,
                       state: DialogueState) -> list[BotMessage]:
         """
         根据校验结果对象的原因码，利用LLM 来润色澄清回复
@@ -27,7 +27,7 @@ class ClarifyResponder:
         """
 
         # 1. 构建澄清话术需要的提示词模版变量值
-        prompt_inputs = self._build_responder_prompt_inputs(validated, state)
+        prompt_inputs = self._build_responder_prompt_inputs(reason, state)
 
         # 2. 格式化模版，调用LLM
         bot_messages = await self._invoke(prompt_inputs)
@@ -36,13 +36,13 @@ class ClarifyResponder:
         return bot_messages
 
     def _build_responder_prompt_inputs(self,
-                                       validated: TurnPlanValidatedResult,
+                                       reason: ClarifyReason,
                                        state: DialogueState) -> dict[str, Any]:
         user_message_str = ChatHistoryBuilder.build_user_message(state.pending_turn.user_message)
         history_str = ChatHistoryBuilder.build(state.current_session().turns[-10:])
         focused_object_str = json.dumps(state.focused_object,ensure_ascii=False) if state.focused_object is not None else "null"
-        reason_str = validated.reason.value
-        clarify_message_str =self._build_base_response(validated.reason,state)
+        reason_str = reason.value
+        clarify_message_str =self._build_base_response(reason,state)
 
         return {
             "user_message": user_message_str,
