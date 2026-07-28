@@ -13,7 +13,7 @@ class TaskHandler:
                  command_processor: CommandProcessor,
                  flow_executor: FlowExecutor
                  ):
-        self._flows_list = flows_list
+        self.flows_list = flows_list
         self._command_processor = command_processor
         self._flow_executor = flow_executor
 
@@ -31,9 +31,9 @@ class TaskHandler:
         """
 
         # 1. 利用命令[指令]处理器处理对应的命令[指令]
-        self._command_processor.process_commands(commands, state, self._flows_list)
+        self._command_processor.process_commands(commands, state, self.flows_list)
 
         # 2. 利用流程推进器推荐流程
-        bot_messages = await self._flow_executor.executor_flow(self._flows_list, state)
+        bot_messages = await self._flow_executor.executor_flow(self.flows_list, state)
         # 3. 返回机器人回复的消息
         return bot_messages

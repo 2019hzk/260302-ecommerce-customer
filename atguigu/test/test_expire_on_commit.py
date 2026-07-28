@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import String
-from atguigu.domain.config import settings
+from atguigu.config import settings
 
 
 class Base(DeclarativeBase):

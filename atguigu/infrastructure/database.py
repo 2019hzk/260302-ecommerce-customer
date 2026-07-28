@@ -6,7 +6,7 @@ import asyncio
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import text
 
-from atguigu.domain.config import settings
+from atguigu.config.config import settings
 
 db_engine: AsyncEngine | None = None
 

@@ -1,4 +1,5 @@
-from atguigu.domain.contexts import CanceledSystemContext, TaskContext, InterruptedSystemContext, StartedSystemContext
+from atguigu.domain.contexts import CanceledSystemContext, TaskContext, InterruptedSystemContext, StartedSystemContext, \
+    ResumeFailedSystemContext, ResumedSystemContext
 from atguigu.domain.state import DialogueState
 from atguigu.task.command.commands import Command, StartFlowCommand, SetSlotsCommand, ResumeFlowCommand, \
     CancelFlowCommand
@@ -126,7 +127,6 @@ class CommandProcessor:
                 started_flow_name=start_flow_name
             ))
 
-
     def update_slots(self,
                      command: SetSlotsCommand,
                      state: DialogueState):
@@ -147,7 +147,91 @@ class CommandProcessor:
                      command: ResumeFlowCommand,
                      state: DialogueState,
                      flows_list: FlowsList):
-        pass
+        """
+        职责： 恢复业务流程
+        flow_id:存在：明确要恢复的业务流程  不存在：没有明确要恢复的业务流程
+        Args:
+            command:
+            state:
+            flows_list:
+
+        Returns:
+
+        """
+
+        # 1. 获取要恢复的业务流程ID
+        resumed_flow_id = command.flow
+
+
+        # 2. 获取当前真正执行的业务流程
+        activated_task = state.activated_task
+
+        # 3.当前存在正在执行的业务流程
+        if activated_task is not None:
+
+            # 3.1 判断flow_id是否存在
+            if resumed_flow_id is None:
+                return  # 直接结束 保持当前业务流程状态即可
+
+            # 3.2 判断当前业务流程的流程ID等于要恢复的业务流程ID
+            if activated_task.flow_id == resumed_flow_id:
+                return  # 直接结束  当前真正执行要恢复的业务流程
+
+            # 3.3 将当前业务流程上下文对象压入到栈中
+
+            interrupted_flow_id = activated_task.flow_id
+            interrupted_flow_name = flows_list.get_flow_by_flow_id(interrupted_flow_id).flow_name
+
+            state.interrupt_activated_task()
+
+            resumed = state.resume_task(flow_id=resumed_flow_id)
+            # 3.4 恢复目标业务流程失败
+            if not resumed:
+                # a)  回滚
+                state.resume_task()
+
+                # b) 激活恢复失败的系统流程
+                state.start_system_task(ResumeFailedSystemContext(
+                    flow_id="system_task_resume_failed",
+                    step_id="start"
+                ))
+                return
+
+            # 3.5 恢复目标业务流程成功
+            state.start_system_task(InterruptedSystemContext(
+                flow_id="system_task_interrupted",
+                step_id="start",
+                interrupted_flow_id=interrupted_flow_id,
+                interrupted_flow_name=interrupted_flow_name,
+                started_flow_id=resumed_flow_id,
+                started_flow_name=flows_list.get_flow_by_flow_id(resumed_flow_id).flow_name
+            ))
+            return
+
+        # 4.当前不存在正在执行的业务流程
+        else:
+
+            # a) 恢复指定的业务流程
+            resumed = state.resume_task(flow_id=resumed_flow_id)
+
+            # b) 恢复失败
+            if not resumed:
+                state.start_system_task(ResumeFailedSystemContext(
+                    flow_id="system_task_resume_failed",
+                    step_id="start"
+                ))
+                return
+
+            resumed_flow_id = state.activated_task.flow_id
+            resumed_flow_name = flows_list.get_flow_by_flow_id(resumed_flow_id).flow_name
+
+            # c) 恢复成功
+            state.start_system_task(ResumedSystemContext(
+                flow_id="system_task_resumed",
+                step_id="start",
+                resumed_flow_id=resumed_flow_id,
+                resumed_flow_name=resumed_flow_name
+            ))
 
     def _cancel_flow(self,
                      state: DialogueState,
@@ -178,3 +262,7 @@ class CommandProcessor:
             canceled_flow_id=activate_task.flow_id,  # 取消的业务流程ID
             canceled_flow_name=flows_list.get_flow_by_flow_id(activate_task.flow_id).flow_name  # 取消的业务流程名字
         ))
+
+
+
+

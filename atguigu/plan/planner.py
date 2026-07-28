@@ -29,7 +29,7 @@ class TurnPlanner:
         """
 
         # 1. 准备提示词模版中的变量值
-        prompt_inputs: dict[str, Any] = self._build_prompt_inputs(state, flows_list)
+        prompt_inputs: dict[str, Any] = self._build_prompt_inputs(state, flows_list,knowledge_intents=knowledge_intents)
 
         # 2. 格式化模板以及调用LLM
         llm_result = await self._invoke(prompt_inputs)

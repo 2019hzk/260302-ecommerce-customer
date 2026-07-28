@@ -55,6 +55,7 @@ class SystemContext:
         clz = SYSTEM_CONTEXT_TO_CLASS[flow_id]
         return clz(**data)
 
+
 @dataclass(slots=True)
 class StartedSystemContext(SystemContext):
     started_flow_id: str
@@ -65,6 +66,11 @@ class StartedSystemContext(SystemContext):
 class ResumedSystemContext(SystemContext):
     resumed_flow_id: str
     resumed_flow_name: str
+
+
+@dataclass(slots=True)
+class ResumeFailedSystemContext(SystemContext):
+    """没有找到可恢复的业务流程时使用。"""
 
 
 @dataclass(slots=True)
@@ -93,9 +99,6 @@ SYSTEM_CONTEXT_TO_CLASS: dict[str, Any] = {
     "system_collect_information": CollectedInformationSystemContext,
     "system_task_interrupted": InterruptedSystemContext,
     "system_task_canceled": CanceledSystemContext,
+    "system_task_resume_failed": ResumeFailedSystemContext
 
 }
-
-
-
-
