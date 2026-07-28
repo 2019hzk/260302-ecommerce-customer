@@ -149,6 +149,18 @@ class DialogueState:
         # 2. 清空当前正在执行业务流程任务的上下文
         self.activated_task = None
 
+    def remove_paused_tasks(self, flow_id:str):
+        """
+        判断找，存在，删除 不存在 不动
+        Args:
+            flow_id:
+
+        Returns:
+
+        """
+        self.paused_tasks=[paused_task for  paused_task in  self.paused_tasks if paused_task.flow_id!= flow_id]
+
+
     def resume_task(self, flow_id: str | None = None) -> bool:
         """
         职责：恢复中断的业务流程任务
@@ -255,6 +267,7 @@ class DialogueState:
     # ===================================（卡片）相关==================================
     def set_focused_object(self, object: FocusedObject):
         self.focused_object = object
+
 
 
 

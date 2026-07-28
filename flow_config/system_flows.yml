@@ -39,6 +39,26 @@ flows:
         type: end
         next: []
 
+  system_task_resume_failed:
+    description: Flow for explaining that no paused task can be resumed
+    name: task resume failed acknowledgement
+    steps:
+      - id: start
+        type: start
+        next: acknowledge
+
+      - id: acknowledge
+        type: action
+        action: action_response
+        args:
+          mode: static
+          text: "当前没有找到可以继续的业务流程。你可以告诉我需要从头办理什么业务。"
+        next: end
+
+      - id: end
+        type: end
+        next: [ ]
+
   system_collect_information:
     description: Flow for asking the user for a slot value during a collect step
     name: collect information
