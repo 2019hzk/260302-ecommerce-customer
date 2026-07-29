@@ -10,6 +10,8 @@ def init_http_client():
 
     http_client = AsyncClient(timeout=120, trust_env=False)  # 禁用掉代理访问
 
+    return http_client
+
 
 async def dispose_http_client():
     """

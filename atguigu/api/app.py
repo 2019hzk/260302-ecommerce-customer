@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from atguigu.api import chat_router
 from atguigu.infrastructure.database import init_db_engine, dispose_db_engine
+from atguigu.infrastructure.client import init_http_client, dispose_http_client
 
 
 async def lifespan(_: FastAPI):
@@ -15,9 +16,12 @@ async def lifespan(_: FastAPI):
     # 应用启动
     print("应用启动期间回调到...")
     init_db_engine()
+    init_http_client()
+
     yield  # 【分割信号/分界线】，为了区分应用启动的时候执行初始化资源 应用关闭执行资源的释放
     print("应用关闭回调到...")
     await dispose_db_engine()
+    await  dispose_http_client()
 
 
 app = FastAPI(lifespan=lifespan)

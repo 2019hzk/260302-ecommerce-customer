@@ -20,5 +20,7 @@ class Action(ABC):
     name: str
 
     @abstractmethod
-    async def run(self, action_kwargs: dict[str, Any]) -> ActionResult:
+    async def run(self,
+                  action_kwargs: dict[str, Any],
+                  state:DialogueState) -> ActionResult:
         pass
