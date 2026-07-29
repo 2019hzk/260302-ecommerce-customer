@@ -66,15 +66,13 @@ flows:
       - id: start
         type: start
         next: ask_order_number
-
       - id: ask_order_number
         type: collect
         slot_name: order_number
         response:
           text: "请告诉我你的订单号。"
+
         next: lookup_order_status
-
-
       - id: lookup_order_status
         type: action
         action: action_lookup_order_status
@@ -86,7 +84,6 @@ flows:
         args:
           text: "订单{{ slots.order_number }}当前状态是：{{ slots.order_status }}。{{ slots.order_summary }}"
         next: end
-
       - id: end
         type: end
         next: [ ]
