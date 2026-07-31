@@ -51,7 +51,7 @@ class DialogueEngine:
         if user_message.type is MessageType.TEXT:
             bot_messages: list[BotMessage] = await self._process_text_message(state,
                                                                               flows_list=self._task_handler.flows_list,
-                                                                              knowledge_intents=self._knowledge_handler.intents
+                                                                              knowledge_intents=self._knowledge_handler.knowledge_intents
                                                                               )
 
         # 3.2 对象消息类型
@@ -128,7 +128,6 @@ class DialogueEngine:
         if turn_plan.task is not None:
             return await self._task_handler.handle(state, commands=turn_plan.task.commands)
         elif turn_plan.knowledge is not None:
-            # pass
             return await self._knowledge_handler.handle(state,turn_plan.knowledge.intents)
         else:
             return await self._chitchat_handler.handle(turn_plan.chitchat.chat, state)

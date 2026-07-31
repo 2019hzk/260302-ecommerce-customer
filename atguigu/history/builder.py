@@ -1,4 +1,6 @@
-from atguigu.domain.messages import UserMessage, BotMessage, MessageType, FocusedObject
+from typing import Literal
+
+from atguigu.domain.messages import UserMessage, BotMessage, MessageType, FocusedObject, ChatHistoryMessage
 from atguigu.domain.state import Turn
 
 
@@ -60,10 +62,9 @@ class ChatHistoryBuilder:
         Returns:
         """
         if bot_message.text:
-            return  ChatHistoryBuilder._render_text_message(bot_message.text)
+            return ChatHistoryBuilder._render_text_message(bot_message.text)
 
         return ChatHistoryBuilder._render_object_message(bot_message.object)
-
 
     @classmethod
     def _render_text_message(cls, text: str) -> str:
@@ -89,3 +90,16 @@ class ChatHistoryBuilder:
         attributes_str = "|".join([f"{k}={v}" for k, v in object.attributes.items()])
 
         return f"【id={id} label={label} title={title} attributes={attributes_str}】"
+
+    @classmethod
+    def build_chat_history(cls,
+                           session_id: str,
+                           role: Literal["user", "bot"],
+                           text: str,
+                           object: FocusedObject) -> ChatHistoryMessage:
+
+        return ChatHistoryMessage(session_id=session_id,
+                                  role=role,
+                                  text=text,
+                                  object=object
+                                  )

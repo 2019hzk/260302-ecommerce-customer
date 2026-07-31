@@ -9,7 +9,7 @@ IO /网络传输 不能直接读写对象或者发送对象以及接收对象
 对象只在内存中有
 """
 from enum import Enum
-from typing import Any, Self
+from typing import Any, Self, Literal
 from dataclasses import field, dataclass
 
 
@@ -106,3 +106,12 @@ class BotMessage:
 class ProcessResult:
     message_id: str
     messages: list[BotMessage]
+
+
+
+@dataclass(slots=True)
+class ChatHistoryMessage:
+    session_id:str
+    role:Literal["user","bot"]
+    text: str | None = None
+    object: FocusedObject | None=None

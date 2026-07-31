@@ -93,7 +93,7 @@ class FAQDefaultProvider(Provider):
         Returns:
 
         """
-        pass
+        return  [KnowledgeChunk(content="暂未对接FAQ,无法查询到有效的知识内容")]
 
 
 class RAGDefaultProvider(Provider):
@@ -108,7 +108,7 @@ class RAGDefaultProvider(Provider):
         Returns:
 
         """
-        pass
+        return [KnowledgeChunk(content="暂未对接RAG,无法查询到有效的知识内容")]
 
 
 

@@ -6,6 +6,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from atguigu.domain.messages import ChatHistoryMessage
+
 
 class ChatObject(BaseModel):
     id: str
@@ -35,3 +37,9 @@ class ChatResponse(BaseModel):
     """
     message_id: str
     messages: list[ChatBotMessage]
+
+
+
+class ChatHistoryResponse(BaseModel):
+    sender_id:str
+    messages:list[ChatHistoryMessage]

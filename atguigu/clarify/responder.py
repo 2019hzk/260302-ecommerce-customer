@@ -40,7 +40,8 @@ class ClarifyResponder:
                                        state: DialogueState) -> dict[str, Any]:
         user_message_str = ChatHistoryBuilder.build_user_message(state.pending_turn.user_message)
         history_str = ChatHistoryBuilder.build(state.current_session().turns[-10:])
-        focused_object_str = json.dumps(state.focused_object,ensure_ascii=False) if state.focused_object is not None else "null"
+        focused_object_str = json.dumps(state.focused_object.to_dict(),
+                                        ensure_ascii=False) if state.focused_object is not None else "null"
         reason_str = reason.value
         clarify_message_str =self._build_base_response(reason,state)
 
