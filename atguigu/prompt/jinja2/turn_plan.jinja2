@@ -40,7 +40,21 @@ Task 对象示例：
 流程命令语义：
 - `start_flow`: 用户想表达非继续、接着、恢复刚才的业务”等全新的业务意图时使用，这是一开启业务流程指令
 - `resume_flow`：用户表达“继续、接着、恢复刚才的业务”等意图时使用；指定业务用 `flow`，未指定则省略 `flow`。
-
+槽位提取规则：
+- 每个 flow 的 `slots` 是该流程唯一允许使用的槽位清单；
+- `set_slots.slots` 的 key 必须从目标 flow 的 `slots` 中原样选择，禁止创造、改写或猜测其他 key。
+- 用户当前话语中只要明确给出了目标流程所需的槽位值，就必须输出 `set_slots`，不能因为同时输出了 `start_flow` 而省略。
+- 同一轮同时包含业务意图和槽位值时，先输出 `start_flow`，再输出一个 `set_slots`；
+多个已知槽位合并到同一个 `set_slots.slots` 对象。
+- 只提取用户明确表达的值，禁止臆造用户没有提供的槽位值。
+- 示例：“我想查询订单A20260408001的物流信息”必须输出：
+{
+    "commands":
+            [
+                {"command": "start_flow", "flow": "logistics_tracking"},
+                {"command": "set_slots", "slots": {"order_number": "A20260408001"}}
+            ]
+ }
 可用 flows：
 {{ available_flows_json }}
 

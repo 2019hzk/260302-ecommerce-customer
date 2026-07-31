@@ -1,0 +1,4 @@
+
+
+class  KnowledgeResponder:
+    pass

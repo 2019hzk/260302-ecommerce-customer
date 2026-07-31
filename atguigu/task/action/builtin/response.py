@@ -70,7 +70,7 @@ class ActionResponse(Action):
     def _render(self, response_text: str, state: DialogueState) -> str:
         template = Template(response_text)
 
-        render_str = template.render(slots=state.activated_task.slots, context=state.activated_system_task)
+        render_str = template.render(slots=state.activated_task.slots if state.activated_task is not None else {}, context=state.activated_system_task)
 
         return render_str
 

@@ -37,7 +37,7 @@ class FlowExecutor:
             if action_call.action_name == "action_listen":
                 break
             else:
-                action_result = await action_runner.run(action_call)
+                action_result = await action_runner.run(action_call, state)
 
                 final_messages.extend(action_result.messages)
                 state.set_slots(action_result.slots)
@@ -77,14 +77,13 @@ class FlowExecutor:
             step = flow.get_step_by_step_id(step_id)
 
             # 6. 执行步骤
-            action_call = self._run_step(step, flows_list, state)
+            action_call = self._run_step(step, state)
 
             if action_call is not None:
                 return action_call
 
     def _run_step(self,
                   step: FlowStep,
-                  flows_list: FlowsList,
                   state: DialogueState) -> ActionCall | None:
         """
         职责step
@@ -97,41 +96,38 @@ class FlowExecutor:
 
         """
         if isinstance(step, StartFlowStep):
-            return self._run_start_step(step, flows_list, state)
+            return self._run_start_step(step, state)
         elif isinstance(step, EndFlowStep):
             return self._run_end_step(state)
         elif isinstance(step, ActionFlowStep):
-            return self._run_action_step(step, flows_list, state)
+            return self._run_action_step(step, state)
         elif isinstance(step, CollectFlowStep):
-            return self._run_collect_step(step, flows_list, state)
+            return self._run_collect_step(step, state)
         else:
             return None
 
     def _run_start_step(self,
                         step: StartFlowStep,
-                        flows_list: FlowsList,
                         state: DialogueState) -> None:
 
         # 1. 推进下一步
-        self._advance_flow_step(step, flows_list, state)
+        self._advance_flow_step(step, state)
 
         # 2. 返回None
         return None
 
     def _advance_flow_step(self,
                            step: FlowStep,
-                           flows_list: FlowsList,
                            state: DialogueState):
 
         # 1. 根据当前step找到下一个step_id
-        selected_id = self._select_step_id(step, flows_list, state)
+        selected_id = self._select_step_id(step, state)
 
         # 2. 更新selected_id
         state.current_task().step_id = selected_id
 
     def _select_step_id(self,
                         step: FlowStep,
-                        flows_list: FlowsList,
                         state: DialogueState):
         for next_link in step.next:
 
@@ -179,10 +175,9 @@ class FlowExecutor:
 
     def _run_action_step(self,
                          step: ActionFlowStep,
-                         flows_list: FlowsList,
                          state) -> ActionCall:
         # 1. 推进下一步
-        self._advance_flow_step(step, flows_list, state)
+        self._advance_flow_step(step, state)
 
         # 2. 构建Action
         action_kwargs = step.args
@@ -194,7 +189,6 @@ class FlowExecutor:
 
     def _run_collect_step(self,
                           step: CollectFlowStep,
-                          flows_list: FlowsList,
                           state: DialogueState) -> ActionCall | None:
         """
         收集槽位信息（业务流程会进来）
@@ -212,14 +206,17 @@ class FlowExecutor:
         Returns:
 
         """
-        #  TODO 卡片
+        # 1. 尝试利用点击的卡片
+        self._try_fill_slots_from_focused_object(step, state)
+
+        # 2. 判断
         if state.activated_task.slots.get(step.slot_name):
             # 第二次进来，代表用户填写了槽位，判断填写的槽位是否合法
             # 配置了校验开关
             if step.validate:
                 if self._eval_condition(step.validate.condition, state):
                     # 推进下一步
-                    self._advance_flow_step(step, flows_list, state)
+                    self._advance_flow_step(step, state)
                     # 返回None
                     return None
                 else:
@@ -238,7 +235,7 @@ class FlowExecutor:
             # 没有在YAML为collect类型的步骤配置校验
             else:
                 # 推进下一步
-                self._advance_flow_step(step, flows_list, state)
+                self._advance_flow_step(step, state)
                 # 返回None
                 return None
         else:
@@ -250,7 +247,26 @@ class FlowExecutor:
                 slot_name=step.slot_name
             ))
 
-            return None  # 只需要返回None 并且不可用推下一步
+            return None  # 只需要返回None 并且不可推下一步
+
+    def _try_fill_slots_from_focused_object(self,
+                                            step: CollectFlowStep,
+                                            state: DialogueState):
+
+        # 1. 判断当前业务流程以及卡片对象是否有
+        if state.activated_task is None or state.focused_object is None:
+            return
+
+        # 2. 利用点击的卡片
+        excepted_slots_mapping = {
+            "order": "order_number",
+            "product": "product_id"
+        }
+        excepted_slots = excepted_slots_mapping.get(state.focused_object.type)
+
+        # 3. 当前业务流程的这一步需要的槽位名是否和期望的槽位一致
+        if step.slot_name == excepted_slots and not state.activated_task.slots.get(step.slot_name):
+            state.set_slots({step.slot_name: state.focused_object.id})
 
 
 if __name__ == '__main__':

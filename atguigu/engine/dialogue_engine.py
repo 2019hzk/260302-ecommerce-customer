@@ -128,11 +128,10 @@ class DialogueEngine:
         if turn_plan.task is not None:
             return await self._task_handler.handle(state, commands=turn_plan.task.commands)
         elif turn_plan.knowledge is not None:
-            pass
-            # return self._knowledge_handler.handle()
+            # pass
+            return await self._knowledge_handler.handle(state,turn_plan.knowledge.intents)
         else:
-            pass
-            # return self._chitchat_handler.handle()
+            return await self._chitchat_handler.handle(turn_plan.chitchat.chat, state)
 
     async def _process_object_message(self,
                                       object_message: FocusedObject,
